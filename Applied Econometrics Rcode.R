@@ -28,7 +28,6 @@ data$DENIP<-as.numeric(data$DENIP)
 
 glimpse(data)
 
-#Data on oikea
 #Plot variables of interests and descriptive statistics
 
 data$SWERER_Change<-(log(data$SWERER)-log(lag(data$SWERER,12)))*100
@@ -61,12 +60,6 @@ data$FINI3_diff2<-data$FINI3_diff-lag(data$FINI3_diff,1)
 data$SWEI3_diff2<-data$SWEI3_diff-lag(data$SWEI3_diff,1)
 data$DENI3_diff2<-data$DENI3_diff-lag(data$DENI3_diff,1)
 
-
-train <- data %>%
-  filter(time < as.POSIXct("2018-01-01"))
-
-test <- data %>%
-  filter(time >= as.POSIXct("2018-01-01"))
 
 variables <- c(
   "FINRER_Change", "SWERER_Change", "DENRER_Change",
@@ -110,8 +103,6 @@ latex_table <- stats_df %>%
   kable_styling(latex_options = c("striped", "hold_position"))
 
 latex_table
-
-
 
 library(tidyverse)
 
@@ -219,30 +210,21 @@ ggplot(data_long8, aes(x = time)) +  # make sure column name is 'Time'
   theme_minimal() +
   ggtitle("Dividend yield and change in real exchange rate in Denmark")+
   theme(legend.position = "bottom")
-
-
-b) 
+ 
 jarque.bera.test(data$SWERER)#Data isn't normally distributed
 jarque.bera.test(data$FINRER)#Data isn't normally distributed
 jarque.bera.test(data$DENRER) #Data is normally distributed
 
-#Calculate new columns and new series, are lagged values etc etc
-
 b) Unit root tests
-
-
 
 adfTest(train$FINDY, lags = 12, type = "c") #non-stationary
 kpss.test(train$FINDY)#Non-Stationary
 
-
 adfTest(train$SWEDY, lags = 12, type = "c") #non-stationary
 kpss.test(train$SWEDY)#Non-Stationary
 
-
 adfTest(train$DENDY, lags = 12, type = "c") #non-stationary
 kpss.test(train$DENDY)#Non-Stationary
-
 
 adfTest(train$FINRER_Change, lags = 12, type = "c")#non-stationary
 kpss.test(train$FINRER_Change)#Stationary
@@ -250,11 +232,8 @@ kpss.test(train$FINRER_Change)#Stationary
 adfTest(train$SWERER_Change, lags = 12, type = "c") #Non-Stationary
 kpss.test(train$SWERER_Change)#Stationary
 
-
 adfTest(train$DENRER_Change, lags = 12, type = "c")#Non-Stationary
 kpss.test(train$DENRER_Change)#Stationary
-
-
 
 #To make comparison meaningful we take first difference 
 for all real exchange rate changes and dividends
@@ -743,7 +722,6 @@ stargazer(
   digits = 3
 )
 
-
 #Sweden
 
 #Optimal lag length
@@ -760,7 +738,6 @@ Var_select_SWE<-VARselect(
 
 Var_select_SWE$selection #Optimal lag length => AIC = 3, HQ=2, SC=1, FPE=3
 
-
 var_model_SWE<-VAR(na.omit(train[,c("diff_SWEDY","SWEIP_Change","INF_DIFF_SWE", "diff_SWERER_Change","SWEI3_diff")]), p = 1)
 
 summary(var_model_SWE)
@@ -771,11 +748,7 @@ stargazer(
   digits = 3
 )
 
-
 #Denmark
-
-Optimal lag length
-
 Var_select_DEN<-VARselect(
   na.omit(train[, c("diff_DENDY",
                     "DENIP_Change",
@@ -816,45 +789,26 @@ linearHypothesis(
   c("diff_FINRER_Change.l1 = 0") #P-value 0.2329
 )
 
-#First difference of Exchange rate changes don't appear to explain dividend yields
-
-
-#SWE
-
 linearHypothesis(
   var_model_SWE$varresult$diff_SWERER_Change,
   c("diff_SWEDY.l1 = 0")
-)						#P-value 0.9072=> 
-#Dividend yield doesn't granger cause SWERER
-
+)						
 linearHypothesis(
   var_model_SWE$varresult$diff_SWEDY,
   c("diff_SWERER_Change.l1 = 0")
 )						
-#P-value 0.7729=> Doesn't granger-cause dividend yield
-
-
 
 #DEN
-
 linearHypothesis(
   var_model_DEN$varresult$diff_DENRER_Change,
   c("diff_DENDY.l1 = 0")
 )  					
-
-#P-value 0.3077, so Dividend yield doesn't granger-cause annual change in real exchange rate
-
 
 linearHypothesis(
   var_model_DEN$varresult$diff_DENDY,
   c("diff_DENRER_Change.l1 = 0") 
 )
 
-#P-value 0.07018,first  difference of real exchange rate doesn't granger-cause first difference of dividend yield
-
-
-
-par(mfrow=c(3,3))
 ir_FIN<-irf(var_model,n.ahead = 12, runs=100)
 ir_SWE<-irf(var_model_SWE,n.ahead = 12, runs=100)
 ir_DEN<-irf(var_model_DEN,n.ahead = 12, runs=100)
@@ -865,7 +819,6 @@ plot(ir_DEN)
 ir_FIN
 ir_SWE
 ir_DEN
-
 
 vd_fin = fevd(var_model,n.ahead = 12)
 vd_fin
@@ -879,11 +832,7 @@ vd_den = fevd(var_model_DEN,n.ahead = 12)
 vd_den
 plot(vd_den)
 
-
-
-
-
-i) Change the order
+# Change the order
 
 var_model_SWE2<-VAR(na.omit(train[,c("SWEIP_Change","INF_DIFF_SWE", "diff_SWERER_Change","diff_SWEDY","SWEI3_diff")]), p = 1)
 var_model_FIN2<-VAR(na.omit(train[,c("FINIP_Change","INF_DIFF_FIN", "diff_FINRER_Change","diff_FINDY","FINI3_diff")]), p = 1)
@@ -893,17 +842,11 @@ linearHypothesis(
   var_model_FIN2$varresult$diff_FINRER_Change,
   c("diff_FINDY.l1 = 0")
 
-#P-value 0.01091, dividend yield granger cause real exchange rate change
-
 
 linearHypothesis(
   var_model_FIN2$varresult$diff_FINDY,
   c("diff_FINRER_Change.l1 = 0") 
 )
-
-#P-value 0.2329, diff_FINRER_Change doesn't granger cause dividend yield changes
-
-
 
 linearHypothesis(
   var_model_SWE2$varresult$diff_SWERER_Change,
@@ -914,8 +857,6 @@ linearHypothesis(
   c("diff_SWERER_Change.l1 = 0") #P-value 0.7729, diff_SWERER_Change doesn't granger cause dividend yield changes
 
 )
-
-#=> Dividend yield granger-causes SWERER change but 
 
 linearHypothesis(
   var_model_DEN2$varresult$diff_DENRER_Change,
@@ -928,10 +869,6 @@ linearHypothesis(
 
 )
 
-#For Finland Dividend yield seems to granger cause 
-
-
-
 summary(var_model_FIN2)
 summary(var_model_SWE2)
 summary(var_model_DEN2)
@@ -943,8 +880,7 @@ ir_DEN2<-irf(var_model_DEN2,n.ahead = 12)
 plot(ir_FIN2)
 plot(ir_SWE2)
 plot(ir_DEN2)
-
-
+	
 vd_fin2 = fevd(var_model_FIN2,n.ahead = 12)
 vd_fin2
 plot(vd_fin2)
@@ -1362,8 +1298,6 @@ varmodel_DENRER = list(garchOrder=c(1,1),model="gjrGARCH")
 spec = ugarchspec(mean.model = meanmodel_DENRER_,variance.model = varmodel_DENRER)
 ugarchfit(spec,data=na.omit(train$diff_DENRER_Change))
 
-
-
 #Forecasts for optimal models
 
 #Static and Dynamic forecasts FINDY
@@ -1372,8 +1306,6 @@ fit_FINDY_ = ugarchfit(spec_FIN,data = na.omit(train$diff_FINDY),out.sample = 36
 static_fc = ugarchforecast(fit_FINDY_,n.ahead=1,n.roll = 35)
 dynamic_fc = ugarchforecast(fit_FINDY_,n.ahead = 36)
 actual_FINDY = na.omit(test$diff_FINDY)
-
-
 
 ac
 static_pred_FINDY  <- as.numeric(static_fc@forecast$seriesFor)
@@ -1409,7 +1341,6 @@ lines(x_axis,dynamic_fc@forecast$sigmaFor,col="brown1")
 legend("topright", legend=c("Static", "Dynamic"),col=c("blue3","brown1"),
 lty= 1)
 
-
 par(lwd=2,cex.axis = 2)
 x_axis = data$time[data$time >= "2018-01-01"]
 plot(x_axis,static_fc@forecast$seriesFor,type="l",xlab="",ylab="",col="blue3",main="Forecast of mean (FIN)"
@@ -1418,7 +1349,6 @@ plot(x_axis,static_fc@forecast$seriesFor,type="l",xlab="",ylab="",col="blue3",ma
 lines(x_axis,dynamic_fc@forecast$seriesFor,col="brown1")
 legend("topright", legend=c("Static", "Dynamic"),col=c("blue3","brown1"),
 lty= 1)
-
 
 #Static and Dynamic forecasts SWEDY
 fit_SWEDY_ = ugarchfit(spec_SWE,data = na.omit(train$diff_SWEDY),out.sample = 36)
@@ -1435,7 +1365,6 @@ lines(x_axis,dynamic_fc_SWEDY@forecast$sigmaFor,col="brown1")
 legend("topright", legend=c("Static", "Dynamic"),col=c("blue3","brown1"),
 lty= 1)
 
-
 par(lwd=2,cex.axis = 2)
 x_axis = data$time[data$time >= "2018-01-01"]
 plot(x_axis,static_fc_SWEDY@forecast$seriesFor,type="l",xlab="",ylab="",col="blue3",main="Forecast of mean (SWE)"
@@ -1444,7 +1373,6 @@ plot(x_axis,static_fc_SWEDY@forecast$seriesFor,type="l",xlab="",ylab="",col="blu
 lines(x_axis,dynamic_fc_SWEDY@forecast$seriesFor,col="brown1")
 legend("topright", legend=c("Static", "Dynamic"),col=c("blue3","brown1"),
 lty= 1)
-
 
 Static and Dynamic forecasts DENDY
 
@@ -1461,7 +1389,6 @@ lines(x_axis,dynamic_fc_DENDY@forecast$sigmaFor,col="brown1")
 legend("topright", legend=c("Static", "Dynamic"),col=c("blue3","brown1"),
 lty= 1)
 
-
 par(lwd=2,cex.axis = 2)
 x_axis = data$time[data$time >= "2018-01-01"]
 plot(x_axis,static_fc_DENDY@forecast$seriesFor,type="l",xlab="",ylab="",col="blue3",main="Forecast of mean (DEN)"
@@ -1471,9 +1398,7 @@ lines(x_axis,dynamic_fc_DENDY@forecast$seriesFor,col="brown1")
 legend("topright", legend=c("Static", "Dynamic"),col=c("blue3","brown1"),
 lty= 1)
 
-
 #Real exchange rates
-
 
 fit_DENRER_ = ugarchfit(spec_DENRER,data = na.omit(train$diff_DENRER_Change),out.sample = 36)
 static_fc_DENRER = ugarchforecast(fit_DENRER_,n.ahead=1,n.roll = 35)
@@ -1526,7 +1451,6 @@ par(mfrow=c(3,1))
 plot(test$time,test$diff_SWERER_Change, type="l")
 
 
-
 fit_FINRER_ = ugarchfit(spec_FINRER,data = na.omit(train$diff_FINRER_Change),out.sample = 36)
 static_fc_FINRER = ugarchforecast(fit_FINRER_,n.ahead=1,n.roll = 35)
 dynamic_fc_FINRER = ugarchforecast(fit_FINRER_,n.ahead = 36)
@@ -1554,30 +1478,6 @@ par(mfrow=c(3,1))
 plot(test$time,test$diff_FINRER_Change, type="l")
 
 
-
-
-
-
-stargazer(
-  var_model_FIN2$varresult,
-  type = "latex",
-  digits = 3
-)
-
-stargazer(
-  var_model_SWE2$varresult,
-  type = "latex",
-  digits = 3
-)
-
-stargazer(
-  var_model_DEN2$varresult,
-  type = "latex",
-  digits = 3
-)
-
-
-
 aic_table = array(NA,c(6,6,2))
 for (ar in 0:5) {
 	for (ma in 0:5) {
@@ -1601,8 +1501,6 @@ for (ar in 0:5) {
 
 aic_table2
 
-
-
 aic_table3 = array(NA,c(6,6,2))
 for (ar in 0:5) {
 	for (ma in 0:5) {
@@ -1616,206 +1514,4 @@ aic_table3
 
 
 
-plot(data$time,data$FINRER_Change, type="l",ylab ="RER_Change",xlab="time", main="Finland")
-plot(data$time,data$SWERER_Change, type="l",ylab ="RER_Change",xlab="time", main="Sweden")
-plot(data$time,data$DENRER_Change, type="l",ylab ="RER_Change",xlab="time", main="Denmark")
-
-
-plot(data$time,data$FIN_US_INFDIFF, type="l",ylab ="Difference in inflation",xlab="time", main="Finland")
-plot(data$time,data$SWE_US_INFDIFF, type="l",ylab ="Difference in inflation",xlab="time", main="Sweden")
-plot(data$time,data$DEN_US_INFDIFF, type="l",ylab ="Difference in inflation",xlab="time", main="Denmark")
-
-
-
-summary(data)
-par(mfrow=c(2,2))
-rownames(data) <- data$time
-plot(data$time,data$FINDY, type="l",ylab="Dividend Yield (%)",xlab="time",main="Finland")
-plot(data$time,data$SWEDY, type="l",ylab ="Dividend Yield (%)",xlab="time", main="Sweden")
-plot(data$time,data$FINIP, type="l",ylab="Industrial production index",xlab="time",main="Finland")
-plot(data$time,data$SWEIP, type="l",ylab ="Industrial production index",xlab="time", main="Sweden")
-plot(data$time,data$FINCPI, type="l",ylab="CPI",xlab="time",main="Finland")
-plot(data$time,data$SWECPI, type="l",ylab ="CPI",xlab="time", main="Sweden")
-plot(data$time,data$FINRER, type="l",ylab="Real Exchange Rate index",xlab="time",main="Finland")
-plot(data$time,data$SWERER, type="l",ylab ="Real Exchange Rate index",xlab="time", main="Sweden")
-plot(data$time,data$DENRER, type="l",ylab ="Real Exchange Rate index",xlab="time", main="Denmark")
-
-plot(data$time,data$INF_DIFF_FIN, type="l",ylab="Inflation differential between FIN and US",xlab="time",main="Finland")
-plot(data$time,data$INF_DIFF_SWE, type="l",ylab ="Inflation differential between SWE and US",xlab="time", main="Sweden")
-plot(data$time,data$INF_DIFF_DEN, type="l",ylab ="Inflation differential between DEN and US",xlab="time", main="Denmark")
-
-plot(data$time,data$FIN_US_I3_DIFF,type="l",ylab ="Interest rate differential between FIN and US",xlab="time", main="Finland")
-plot(data$time,data$SWE_US_I3_DIFF,type="l",ylab ="Interest rate differential between SWE and US",xlab="time", main="Sweden")
-plot(data$time,data$DEN_US_I3_DIFF,type="l",ylab ="Interest rate differential between SWE and US",xlab="time", main="Denmark")
-
-
-plot(data$time,data$FINDY_Change, type="l",ylab ="Change in dividend yield",xlab="time", main="Finland")
-plot(data$time,data$SWEDY_Change, type="l",ylab="Change in dividend yield",xlab="time",main="Sweden")
-plot(data$time,data$DENDY_Change, type="l",ylab ="Change in dividend yield",xlab="time", main="Denmark")
-
-jarque.bera.test(na.omit(train$FINRER_Change))
-jarque.bera.test(na.omit(train$SWERER_Change))
-jarque.bera.test(na.omit(train$DENRER_Change))
-
-jarque.bera.test(na.omit(train$FINDY))
-jarque.bera.test(na.omit(train$SWEDY))
-jarque.bera.test(na.omit(train$DENDY))
-
-
-plot(data$time,data$INF_DIFF_DEN, type="l", main="DEN")
-plot(data$time,data$INF_DIFF_SWE, type="l", main="SWE")
-plot(data$time,data$INF_DIFF_FIN, type="l", main="FIN")
-
-
-glimpse(data)
-
-plot(data$time,data$DEN_US_I3_DIFF, type="l", main="DEN")
-plot(data$time,data$SWE_US_I3_DIFF, type="l", main="SWE")
-plot(data$time,data$FIN_US_I3_DIFF, type="l", main="FIN")
-
-
-
-#Plot dividend yields in the same plot
-data_long <- pivot_longer(
-  data,
-  cols = c(FINDY, SWEDY,DENDY),
-  names_to = "Countries",
-  values_to = "Dividend Yield"
-)
-ggplot(data_long, aes(x = time, y = `Dividend Yield`, color = Countries)) +
-  geom_line(linewidth = 1) +
-  scale_x_date(
-    limits = c(as.Date("1999-01-01"), as.Date("2020-12-01")),
-    date_labels = "%Y-%m"
-  ) +
-  labs(
-    x = "Month",
-    y = "Dividend Yield",
-    title = "Finland vs Sweden vs Denmark"
-  ) +
-  theme_minimal()
-
-data<-na.rm(data)
-data_long2 <- pivot_longer(
-  data,
-  cols = c(FINIP, SWEIP, DENIP),
-  names_to = "Countries",
-  values_to = "Industrial production index"
-)
-
-
-ggplot(data_long2, aes(
-  x = time,
-  y = `Industrial production index`,  
-  color = Countries
-)) +
-  geom_line(linewidth = 1) +
-  scale_x_date(
-    limits = c(as.Date("1999-01-01"), as.Date("2020-12-01")),
-    date_labels = "%Y-%m"
-  ) +
-  labs(
-    x = "Month",
-    y = "Industrial output index",
-    title = "Industrial output index in Finland vs in Sweden vs in Denmark"
-  ) +
-  theme_minimal()
-
-
-data_long3 <- pivot_longer(
-  data,
-  cols = c(FINCPI, SWECPI,DENCPI),
-  names_to = "Countries",
-  values_to = "Consumer Price Index"
-)
-
-
-ggplot(data_long3, aes(
-  x = time,
-  y = `Consumer Price Index`,  
-  color = Countries
-)) +
-  geom_line(linewidth = 1) +
-  scale_x_date(
-    limits = c(as.Date("1999-01-01"), as.Date("2020-12-01")),
-    date_labels = "%Y-%m"
-  ) +
-  labs(
-    x = "Month",
-    y = "CPI",
-    title = "Consumer price index in Finland,Sweden and Denmark"
-  ) +
-  theme_minimal()
-
-
-data_long4 <- pivot_longer(
-  data,
-  cols = c(FINi3, SWEI3,DENi3),
-  names_to = "Countries",
-  values_to = "Short term (3m) interest rate"
-)
-
-
-ggplot(data_long4, aes(
-  x = time,
-  y = `Short term (3m) interest rate`,  
-  color = Countries
-)) +
-  geom_line(linewidth = 1) +
-  scale_x_date(
-    limits = c(as.Date("1999-01-01"), as.Date("2020-12-01")),
-    date_labels = "%Y-%m"
-  ) +
-  labs(
-    x = "Month",
-    y = "Interest rate",
-    title = "Short term (3m) interest rate"
-  ) +
-  theme_minimal()
-
-
-data_long5 <- pivot_longer(
-  data,
-  cols = c(FINRER_Change, SWERER_Change,DENRER_Change),
-  names_to = "Countries",
-  values_to = "Real Exchange Rate"
-)
-
-
-
-ggplot(data_long5, aes(
-  x = time,
-  y = `Real Exchange Rate`, 
-  color = Countries
-)) +
-  geom_line(linewidth = 1) +
-  scale_x_date(
-    limits = c(as.Date("1999-01-01"), as.Date("2020-12-01")),
-    date_labels = "%Y-%m"
-  ) +
-  labs(
-    x = "Month",
-    y = "Real Exchange Rate (%)",
-    title = "Real Exchange Rate in Finland, Sweden and Denmark"
-  ) +
-  theme_minimal()
-
-
-causality(var_model_DEN, cause = "diff_DENDY")$Granger
-causality(var_model_DEN, cause = "DENIP_Change")$Granger
-causality(var_model_DEN, cause = "INF_DIFF_DEN")$Granger
-causality(var_model_DEN, cause = "diff_DENRER_Change")$Granger
-causality(var_model_DEN, cause = "DENI3_diff2")$Granger
-
-
-causality(var_model, cause = "diff_FINDY")$Granger
-causality(var_model, cause = "FINIP_Change")$Granger
-causality(var_model, cause = "INF_DIFF_FIN")$Granger
-causality(var_model, cause = "diff_FINRER_Change")$Granger
-causality(var_model, cause = "FINI3_diff2")$Granger
-
-causality(var_model_SWE, cause = "diff_SWEDY")$Granger
-causality(var_model_SWE, cause = "SWEIP_Change")$Granger
-causality(var_model_SWE, cause = "INF_DIFF_SWE")$Granger
-causality(var_model_SWE, cause = "diff_SWERER_Change")$Granger
-causality(var_model_SWE, cause = "SWEI3_diff2")$Granger
+    
