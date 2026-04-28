@@ -1,24 +1,12 @@
-library("moments")
-library("RcmdrMisc")
-library("ggplot2")
-library("moments")
-library("fitdistrplus")
-library("lmtest")
-library("sandwich")
-library("car")
-library("vcd")
-library("car")
-library(stargazer)
-library("readxl")
-library("dplyr")
-library("tidyr")
-library("tseries")
-library("fUnitRoots")
-library("knitr")
-library("kableExtra")
-library("forecast")
-library("rugarch")
-library("vars")
+packages <- c(
+  "moments", "RcmdrMisc", "ggplot2", "fitdistrplus",
+  "lmtest", "sandwich", "car", "vcd", "stargazer",
+  "readxl", "dplyr", "tidyr", "tseries", "fUnitRoots",
+  "knitr", "kableExtra", "forecast", "rugarch", "vars"
+)
+
+lapply(packages, library, character.only = TRUE)
+
 library("FinTS")
 
 data<-read_excel("OECDdata.xlsx")
