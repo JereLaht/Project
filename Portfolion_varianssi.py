@@ -84,21 +84,14 @@ correlations = np.corrcoef(Cov_var)
 correlations_df = pd.DataFrame(correlations, columns=tickers, index=tickers)
 
 print(correlations_df) 
-# Pitäisi vielä lisätä otsikot tähän dataframeen, jotta lukija tietää minkä osakkeiden välisistä korrelaatioista on kyse
-
-price_data.to_csv("C:/Users/jerel/Downloads/price_data.csv", index=True)
-correlations_df.to_csv("C:/Users/jerel/Downloads/correlations.csv", index=True)
-
 
 fig, ax = plt.subplots()
 im = ax.imshow(correlations)
 
-# Show all ticks and label them with the respective list entries
 ax.set_xticks(range(len(names)), labels=names,
               rotation=45, ha="right", rotation_mode="anchor",fontsize=8)
 ax.set_yticks(range(len(names)), labels=names)
 
-# Loop over data dimensions and create text annotations.
 for i in range(len(names)):
     for j in range(len(names)):
         value = round(correlations[i,j],2)
@@ -109,5 +102,3 @@ ax.set_title("Correlations between chosen stocks")
 plt.show()
 
 pd.portfolio_volatility(price_data,weight_matrix_transpose)
-
-#fine
